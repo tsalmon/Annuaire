@@ -1,0 +1,66 @@
+/*
+#header, #header #title{
+	background: grey;
+	color: white;
+	padding: 5px;
+	text-decoration: none;
+	font-size: 20px;	
+}
+
+.content_accueil{
+	margin-top: 100px;
+	margin-left: auto;
+	margin-right: auto;	
+	width: 300px;
+}
+
+.accueil{
+	display: inline;
+	font-size:16px; 
+}
+
+#header #title{
+	font-size: 30px;	
+}
+
+
+.responsable_parti{
+    text-decoration: line-through;
+}
+
+body{
+	width: 1000px;
+	margin: auto;
+}
+*/
+ul.tree, ul.tree ul {
+	list-style-type: none;
+	background: url(http://adpi-intra/intranet_php/testannuaire/img/tree_style/vline.png) repeat-y;
+	margin: 0;
+	padding: 0;
+}
+
+ul.tree ul {
+	margin-left: 10px;
+}
+
+ul.tree li {
+	margin: 0;
+	padding: 0 12px;
+	line-height: 20px;
+	background: url(http://adpi-intra/intranet_php/testannuaire/img/tree_style/node.png) no-repeat;
+	color: #369;
+	font-weight: bold;
+}
+
+ul.tree li.last {
+    background: #fff url(http://adpi-intra/intranet_php/testannuaire/img/tree_style/lastnode.png) no-repeat;
+}
+  
+ul.root{
+	list-style-type: none;	
+}
+
+input[type="submit"]{
+	display: none;
+}

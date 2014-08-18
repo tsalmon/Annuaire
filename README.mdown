@@ -1,0 +1,282 @@
+Documentation de l'Annuaire ADPI    
+=====================
+
+Ce document s'adresse à toute personne qui souhaite améliorer, modifier, ou simplement comprendre le mécanisme de l'annuaire de l'intranet.
+
+> **NOTE:**
+>
+> Il s'adresse à des gens qui ont des connaissances en programmation web (notamment en PHP).
+> Il est conseillé de tester d'abord l'annuaire avant de lire cette documentation.
+
+----------
+
+
+Présentation et Contenu du projet
+---------
+
+### Présentation
+
+l'**Annuaire d'ADP-I** est un programme qui se sert de la base de données `personnel` d'ADPI. Ecrit en PHP objet, il est conçu à l'aide d'un design pattern [MVC](http://fr.wikipedia.org/wiki/Mod%C3%A8le-vue-contr%C3%B4leur) , ceci permettant d'ajouter des fonctionalités supplémentaires, suivant l'utilisation futur.
+
+Nous présenterons tout d'abord les différents dossiers et classes du programme, puis nous expliquerons des cas d'utilisations.
+
+### <i class="icon-folder"></i> Application/
+
+Ce dossier contient l'ensemble du code PHP, notamment les classes, la configuration et le code HTML de la page.
+
+#### <i class="icon-folder"></i> Application/_templates/
+
+Début et fin du fichier html, on retrouve ici les balises `<head>` et `<html>`, le corps de la page (`<body>`) se trouve dans *Application/view.php*. Tous les fichiers css sont appellés dans la balise `<head>`
+
+#### <i class="icon-folder"></i> Application/config/
+
+Contient le fichier de configuration, la table des utilisateurs (telle qu'elle était vers la fin du mois de Juillet 2014) sous forme d'un fichier texte avec comme délimiteur une tabulation, et le parser qui permet d'insérer ce type de fichier dans une base de donnée locale (pour effectuer des tests)
+
+#### <i class="icon-file"></i> Application/config/config.php
+
+Contient les constantes de l'annuaires:
+
+* Pour la connexion à la base de données
+* Pour avoir le chemin absolue depuis la racine du projet
+* Le chemin pour accéder aux images des utilisateurs 
+* la constante **AFFICHAGE** qui permet de gérer la sélection à partir de la colonne 'affichage' de la table, par défaut, on n'affichera que les lignes dont l'affichage vaut '1' (valeur varchar), pour voir toutes les lignes, il faut mettre comme valeur '1=1' (c'est a dire la constante Vrai)
+* la constante **DEBUG_MODE** qui permet d'ouvrir l'annuaire en mode test si on lui donne comme valeur `True`  *(cf **Application/Test.php**)*
+
+#### <i class="icon-file"></i> Application/Annuaire.php
+
+Cette classe est le contrôleur de l'annuaire, tout passe par cette classe.
+
+Annuaire.php demande des données à la classe *Organization*, et les affiches dans la page view.php qui contient le corps de la page html de retour.
+
+Il y a deux cas possibles d'utilisaton:
+
+Rechercher une personne
+: l'url de l'annuaire est index.php?p=[***personne***]
+: Là encore, de deux choses l'une:
+: * Soit ***personne*** s'écrit comme *nom* _ *prenom*, (ps: les espaces dans *nom* et *prenom* sont remplacés par des tirets) et dans ce cas on cherchera directement la personne qui correspond à cette nomination.
+: * Soit ***personne*** s'écrit différement, dans ce cas, on cherchera de façon plus approfondie toutes les personnes dont le nom ou le prénom se rapproche de la valeur envoyé.
+
+Afficher l'organigramme de l'entreprise
+: l'url de la page est index.php?organigramme=show
+: la valeur 'show' n'a aucune importance
+
+#### <i class="icon-file"></i> Application/Controller.php
+
+Classe mère de tous les contrôleurs (par héritage), il est normalement inutile de la modifier, la principale fonction de la classe est 
+
+```
+public function loadModel($model_name)
+```
+
+Qui renvoit une instance d'une classe (normalement conçu pour renvoyer une classe modèle)
+
+#### <i class="icon-file"></i> Application/Organization.php
+
+Modèle de l'annuaire, elle envoie des requêtes à la base de données, construit des objects *Personne* , 
+
+Les fonctions `makePersonne(info, chef)` et `makeEquipe(leader)` permettent de construire un organigramme depuis une certaine personne, avec les personnes de son équipe et ainsi de suite. 
+
+Si nous lançons 
+```
+Organization::$leader = Organization::makeEquipe("Guillaume Sauve"); // PDG
+```
+
+On obtiens l'organigramme totale de l'entreprise.
+
+#### <i class="icon-file"></i> Application/ODBCHelper.php
+
+Contient l'instance qui permet de se connecter à la base de données avec les identifiants dans *config.php*.
+Cette classe utilise ODBC pour se connecter, sont interet est qu'elle permet de configurer les requêtes et la récupérations des résultats partout où l'on s'en servira. C'est donc le point de contrôle entre la base de données d'ADPI et l'annuaire.
+
+#### <i class="icon-file"></i> Application/Personne.php
+
+Une personne est un objet de cette classe. Elle contient - principalement - les fonctions qui permettent d'afficher les données d'une personne.
+
+#### <i class="icon-file"></i> Application/Test.php
+
+Contient les tests de l'annuaire, cette classe est un contrôleur qui n'est utilisé (et ce à la place du contrôleur *Annuaire*) que si **DEBUG_MODE** vaut `True` 
+Pour ajouter un test il faut l'appeller dans le constructeur 
+```
+function __construct()
+```
+#### <i class="icon-file"></i> Application/View.php
+Code HTML de la page (la vue), le code PHP exécuté est séparé du code HTML, il se trouve dans Annuaire.php.
+
+### <i class="icon-folder"></i> css/
+
+#### <i class="icon-pencil"></i> css/knacss.css
+Un gabarit dont l'utilité sert principalement à positionner les elements sur la page (séparé verticalement en 3 partie avec un bandeau au début et un autre en bas de la page) autrement knacss.css contient le style par défaut de la page
+
+#### <i class="icon-pencil"></i> css/style.css
+Contient un code css plus spécifique, par exemple pour afficher l'arborescence d'une personne
+
+### <i class="icon-folder"></i> Img/
+Contient les photos, le logo d'ADPI et les images utilisé pour illustrer l'arborescence d'une personne
+
+
+----------
+
+Fonctionnement de l'annuaire
+---------------
+
+Nous présentons ici plusieurs cas d'utilisations.
+
+### Lors de l'ouverture de l'annuaire
+
+On accède à index.php, l'Index est tout simplement le "main" du programme, depuis lequel on peut soit lancer l'annuaire, soit le débugger pour faire des tests, et où l'on appel les fichiers nécessaires au lancement :
+
+* config.php pour les constantes
+* include.php pour la connexion à la base 
+* controller.php pour les accès aux models depuis les contrôleurs.
+* Soit Test.php soit Annuaire.php selon la valeur de **DEBUG_MODE** dans config
+
+#### Annuaire, ODBCHelper et Controller
+
+Dans le cadre de l'ouverture de l'annuaire, il n'y a aucun argument passé par `$_GET`. En créant un annuaire, nous arrivons au constructeur de la classe : `__construct()`, qui va nous permettre d'ouvrir une connexion à la base de données dans la classe Controlleur (classe parente), en faisant `ODBCHelper::getInstance()` ("**::**" signifie que nous appellons une méthode statique)
+
+Une fois que nous avons initialisé la connexion, nous passons à la méthode index(), suivant les arguments de `$_GET`, la valeur de `$personne` sera différente.  
+
+#### Organisation
+
+la fonction `loadModel()` se trouve dans Controller et permet d'appeler n'importe quel model, dans notre cas, ce sera Organization.php, à partir de cette classe nous appellons:
+
+```
+(Organization.php) liste_personne() : array[Personne]
+```
+
+Cette fonction récupère tous les noms et prénoms de la table, en fonction de la valeur d'**AFFICHAGE**, et renvoit un tableau de Personne
+
+Une personne est un objet constitué d'un tableau (qui sont les informations obtenue en faisant `Personne->getInformations()`), cette fonction n'est pas systématiquement appellé quand on crée un objet afin d'éviter de faire trop de requêtes inutiles. Aussi on ne s'en sert que pour afficher un ou des profils précis, c'est à dire lorsque l'on recherche une personne avec la methode `Annuaire->searchPersonne()`.
+
+#### Personne
+
+On se sert ensuite de la fonction 
+
+```
+(Personne.php) displayListePersonne() : string
+```
+
+Dans le fichier _templates/header.php, cette commande renvoie une chaîne dans le format suivant:
+```
+{
+    key: int,
+    value: string //utilisé pour la recherche de la forme "nom prénom nom"
+    nom_prenom: string //permet de distinger le nom et le prenom en séparant `value` d'un '_'
+}
+``` 
+Pour chaque personne.
+
+Cette commande prépare la liste des personnes à partir de laquelle on pourra accéder avec le champs de recherche.
+
+* le fait qu'on écrive dans *value* le nom d'une personne au début et à la fin permet de recherche une personne indifféremment en tapant *nom* puis *prenom* OU *prenom* puis *nom*.
+* *nom_prenom* permet de renvoyant la chaine voulue, en gardant une notation, pendant que value sera afficher, afin de masquer les "-" et les "_".
+
+> **NOTE:**
+>
+> Toutes ces opérations sont effectuées à chaque chargement et rechargement de l'annuaire, peut importe la page.
+
+### Recherche d'une personne dans le champs
+
+Le champs de recherche utilise la methode `autocomplete` de la technologie JQueryUI, tout le système de recherche se trouve dans une balise `<script>` du fichier ***(Application/_templates/header.php)***, tous les renseignements sur cette méthode [se trouvent ici](http://jqueryui.com/autocomplete/). 
+
+Nous allons expliquer, de façon général, le script :
+
+```
+$(function(){
+ ...
+});
+```
+permet d'utiliser les fonctions JQuery et JQueryUI à l'intérieur.
+
+Le code principale de l'autocomplétion se trouve dans 
+
+```
+$( "#noms" ).autocomplete({
+    ...
+})..autocomplete( "instance" )._renderItem = function( ul, item ) {
+    ...
+};
+```
+
+Qui gère la recherche et permet de paramétrer son fonctionnement, pour le reste: 
+
+* 'accentMap' est une fonction de type `map` qui permet de convertir des caractères
+* 'normalize' est une fonction qui permet de se servir d'accentMap 
+* 'noms' contient toutes les informations de recherches sur les personnes
+
+Dans la fonction autocomplete on trouve la configuration de création et des évènements:
+
+* `source`: récupérer les données contenues dans `noms`, la fonction permet de diriger la recherche autour du champs value de `noms`lors de la création
+* `focus`: gère l'évènement lorsque l'utilisateur sélectionne un nom pour l'afficher dans le champs
+* `select`: s'active lorsque l'utilisateur tape sur sur la touche entrée, on renvoie nom_prenom
+* `open`: lorsque la liste se déroule, on ajoute un lien pour afficher tous les résultats pour une certaine valeur dans le champs de recherche. 
+
+### Recherche et Affichage
+
+On commence la recherche avec la fonction `getPersonne`(string ***pattern***) dans Annuaire.
+***pattern*** est une suite de mots de la forme $[a-zA-Z-]^+$, séparés par des "_" , sans accents, en caractères latins.  On découpe cette chaine dans un tableau de mots = $[mot_1, mot_2, ..., mot_n]$
+
+* Si il y a exactement 2 mots, on utilise la fonction searchPersonne( $mot_1$, $mot_2$)
+* Sinon on utilisera la fonction deepSearchPersonne(mots)
+
+#### searchPersonne(nom, prenom)
+
+On va rechercher dans la liste des personnes le nom et le prenom
+
+#### deepSearchPersonne(mots)
+
+* Si il y a 1 mot:
+Nous cherchons toutes les personnes par leurs noms, puis par leur prénoms.
+* Si il y a plus de deux mots:
+Nous allons joindre les mots en nous servant de tirets ( "**-**" ) en créant un nom et un prénom
+Itérativement, cela donnera **(nom)_(prenom)** (les parentheses ne sont la que pour aider à distinger le nom du prenom)
+$
+(mot_1)\_(mot_2-mot_3-...-mot_n)\\
+(mot_1-mot_2)\_(mot_3-...-mot_n)\\
+(mot_1-mot_2-mot_3)\_(mot_4-...-mot_n)\\
+... \\
+(mot_1-mot_2-mot_3-...-mot_{n-1}))\_(mot_n)\\
+$
+
+Pour chacun de ces résultats, nous executons `searchPersonne(nom, prenom)`, et si la personne existe, alors on l'ajoute au tableau de résultats.
+Ensuite on appel Personne->printPersonne() pour afficher un tableau des valeurs récupérées
+
+Pour voir afficher le chef et l'équipe d'une personne, on se sert du champs Responsable, qui sur la personne recherche affiche le chef, pour l'équipe il suffit de faire 
+
+```
+SELECT personne WHERE Responsable = la_personne_cherché
+```
+Qui renvoit toutes les personnes de l'équipe
+
+### Affichage de l'organisation (algorithme)
+
+Il s'agit d'une recursion croisée, en pseudo code:
+
+```
+function getPersonne(string nom_personne_search, Personne chef_personne): Personne{
+    Personne p = new Personne(nom_personne_search, chef_personne);
+    p->recupererEquipe(p);
+    return p;
+}
+```
+
+```
+function getEquipe(Personne chef): array of Personne{
+    s = sql("SELECT `nom` WHERE `responsable` LIKE chef");
+    equipe = [];
+    foreach(personne in s){
+        equipe.add(getPersonne(personne, chef));
+    }
+    return equipe;
+}
+```
+
+On commence depuis le PDG de l'entreprise, l'algorithme s'execute une fois et une une sur chaque individue de l'arborescence, donc il se produit en $O(n)$. 
+
+### Table des matières
+
+[TOC]
+
+
+<script type="text/javascript" src="https://stackedit.io/libs/MathJax/MathJax.js?config=TeX-AMS_HTML">
+</script>

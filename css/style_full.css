@@ -1,0 +1,23 @@
+aside{
+	display: none;
+}
+
+table td{
+	overflow: inherit;
+}
+
+td, th{
+	padding: inherit;
+}
+
+table{
+	width: inherit;
+}
+
+
+tr:nth-child(odd) {background: #AECCF9}
+tr:nth-child(even) {background: #FFF}
+
+th{
+	background: #BBBBBB; 	
+}
