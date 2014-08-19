@@ -65,7 +65,8 @@ class Personne{
         if(strlen($chef_aux) == 0){ //no boss
             return null;
         }
-        $resultat2 = ODBCHelper::exec("SELECT nom, prenom FROM ".DB_TABLE_USER." WHERE (IDUSER LIKE '".$chef_aux[0]." ".$chef_aux[1]."' OR IDUSER LIKE '".$chef_aux."') AND ".AFFICHAGE."");
+        $chef_aux = explode(" ", $chef_aux);
+        $resultat2 = ODBCHelper::exec("SELECT nom, prenom FROM ".DB_TABLE_USER." WHERE (IDUSER LIKE '".$chef_aux[0]." ".$chef_aux[1]."' OR (nom LIKE '".$chef_aux[1]."' AND prenom LIKE '".$chef_aux[0]."')) AND ".AFFICHAGE."");
         if(!$resultat2){
             return null;
         } 
