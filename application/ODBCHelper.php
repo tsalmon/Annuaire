@@ -7,10 +7,6 @@ class ODBCHelper {
 
     public static function getInstance(){
         if(ODBCHelper::$odbc==null){
-            global $mssql_login_g;
-            global $mssql_pwd_g;
-            global $mssql_db_g;
-
             if(False == (ODBCHelper::$odbc=odbc_connect("Driver={SQL Server};Server=".DB_HOST.";Database=".DB_NAME."; CharacterSet => UTF-8", DB_USER, DB_PASS))) {
                 echo "error";
                 exit;
