@@ -103,9 +103,5 @@ class Annuaire extends Controller{
 		return rtrim($ret_display_listePersonne, ",");
 	}
 
-	public function loadModel($model_name){
-        require_once $model_name.'.php';
-        return new $model_name($this->db);    
-    }
 }
 ?>
