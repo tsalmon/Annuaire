@@ -20,7 +20,6 @@ if(isset($_GET["nom"])) {
     header("location: ./index.php?p=".str_replace(" ", "_", trim($_GET["nom"])));
 }
 
-include_once($_SERVER['APPL_PHYSICAL_PATH'].'include.php');
 require "application/config/config.php";
 require "application/Controller.php";
 
